@@ -1,10 +1,3 @@
-const handler = {
-  get(target, property, receiver) {
-    console.log(`Property "${property}" was accessed`);
-    return target[property];
-  }
-};
-
 function extendGlobalObjectJDS() {
   // Guard against extending prototype multiple times
   if (Object.prototype._jds_save) return;
@@ -96,16 +89,30 @@ function extendGlobalObjectJDS() {
       configurable: true,
       enumerable: false,
     },
-    get: {
-      value: function (key) {
-        if (key === "_jds_id") return this._jds_id;
-        if (key === "_jds_loaded") return this._jds_loaded;
-        this._jds_load();
-        return this[key];
-      },
-      writable: true,
-      configurable: true,
-      enumerable: false,
+    // get: {
+    //   value: function (key) {
+    //     if (key === "_jds_id") return this._jds_id;
+    //     if (key === "_jds_loaded") return this._jds_loaded;
+    //     this._jds_load();
+    //     return this[key];
+    //   },
+    //   writable: true,
+    //   configurable: true,
+    //   enumerable: false,
+    // },
+    _jds_wrapWithProxy:{ //TODO maybe integrate into save, by returning it as proxy -> must be replaced by returned proxy for loading (previous won't load data automaticly)
+      value: function () {
+        if (this._jds_proxied) return this; //check if already proxied (TODO test)
+        return new Proxy(this, {
+            get(target, prop, receiver) {
+              if (prop === "_jds_id") return target._jds_id;
+              if (prop === "_jds_loaded") return target._jds_loaded;
+              target._jds_load();
+              return target[prop];
+            },
+            _jds_proxied: true
+        });
+      }
     },
   });
 };
@@ -120,3 +127,38 @@ function loadObjectJDS(id, type) {
 }
 
 MediaSourceHandle.exports = extendGlobalObjectJDS, loadObjectJDS;
+
+extendGlobalObjectJDS();
+
+class SubObject {
+  constructor(value) {
+      this.value = value;
+  }
+}
+
+class ParentObject {
+  constructor(value) {
+      this.value = value;
+      this.sub_obj = new SubObject(value * 2);
+  }
+}
+
+// Test Code
+const parent = Object._pds_wrapWithProxy(new ParentObject(10));
+console.log("Before Save:", parent);
+
+parent._pds_save("parent_1");
+
+console.log("After Save:", parent);
+
+// Accessing a missing property to trigger lazy load
+console.log("Accessing missing property:");
+console.log(parent.someMissingProperty);
+
+parent._pds_untrack();
+console.log("After Untrack:", parent);
+
+// Reload object
+const loadedParent = loadObjectPDS("parent_1", ParentObject);
+console.log("After Reload (before access):", loadedParent);
+console.log("Accessing property after reload:", loadedParent.value);

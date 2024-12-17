@@ -7,9 +7,9 @@ Object.defineProperty(Object.prototype, 'variable', {
 
 // Global handler for property access
 const handler = {
-  get(target, property, receiver) {
-    console.log(`Property "${property}" was accessed`);
-    return Reflect.get(...arguments);
+  get(target, prop, receiver) {
+    console.log(`Accessing property: ${prop}`);
+    return prop in target ? target[prop] : undefined;
   }
 };
 
@@ -18,14 +18,10 @@ global = new Proxy(global, handler);
 
 global.variable;//output: Property "variable" was accessed
 
-// Proxy handler that will apply to every object
-const globalProxy = new Proxy({}, handler);
-
-// Wrap the entire global context with a Proxy
-Object.setPrototypeOf(global, globalProxy);
+Object.prototype = new Proxy(Object.prototype, handler);
 
 func = function (){};
 console.log(func.variable);//output: "test"
-console.log(({}).variable);//output: "test"
+console.log({}.toString);//output: "test"
 console.log([].variable);//output: "test"
 console.log(Symbol('asd').variable);//output: "test"

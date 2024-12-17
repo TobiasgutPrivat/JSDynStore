@@ -1,4 +1,4 @@
-extendGlobalObjectJDS();
+require('../jsdynstore.js').extendGlobalObjectJDS();
 
 class SubObject {
     constructor(value) {
