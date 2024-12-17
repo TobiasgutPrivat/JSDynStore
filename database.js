@@ -28,3 +28,7 @@ module.exports = {
     getObject,
     deleteObject,
 }
+
+//TODO track changes
+// upload
+// Git stuff
