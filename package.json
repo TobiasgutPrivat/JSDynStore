@@ -1,11 +1,11 @@
 {
-  "name": "JSDynStore",
+  "name": "jsdynstore",
   "version": "0.1.0",
   "description": "Adds storage functionality to the base Prototype, allowing for very easy storing of hierarchical data.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Tobias Gut",
   "license": "ISC"
 }
