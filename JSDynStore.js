@@ -1,3 +1,5 @@
+import { createObject, updateObject, getObject, deleteObject } from './database.js';
+
 function extendGlobalObjectJDS() {
   // Guard against extending prototype multiple times
   if (Object.prototype._jds_save) return;
@@ -21,7 +23,7 @@ function extendGlobalObjectJDS() {
 
         if (this._jds_loaded) return;
         
-        const data = Database.getObject(this._jds_id);
+        const data = getObject(this._jds_id);
         Object.assign(this, data.dict); // Load dict data
         Object.keys(data.items).forEach(key => {
           this[key] = data.items[key];
@@ -60,7 +62,7 @@ function extendGlobalObjectJDS() {
         this._jds_unload(); // unload before saving sub-objects to not save on recursion
 
         if (!this._jds_id) {
-          this._jds_id = customId || Database.createNewObject({ temp: true }); // create placeholder object to get id for sub-objects to have id on recursion
+          this._jds_id = customId || createObject({ temp: true }); // create placeholder object to get id for sub-objects to have id on recursion
         }
 
         dict.values().forEach(value => { // save sub-objects first to not save values in parent as well
@@ -69,7 +71,7 @@ function extendGlobalObjectJDS() {
           }
         });
 
-        Database.updateObject(this._jds_id, dict); //save self to DB
+        updateObject(this._jds_id, dict); //save self to DB
       },
       writable: true,
       configurable: true,
@@ -79,7 +81,7 @@ function extendGlobalObjectJDS() {
       value: function () {
         if (this._jds_id) {
           this._jds_load(); // return object with loaded data but untracked
-          Database.deleteObject(this._jds_id); //remove on database
+          deleteObject(this._jds_id); //remove on database
           //TODO make sure that prototype properties are not deleted (only on objects)
           delete this._jds_id; // remove tracking data
           delete this._jds_loaded;
@@ -144,7 +146,7 @@ class ParentObject {
 }
 
 // Test Code
-const parent = Object._pds_wrapWithProxy(new ParentObject(10));
+const parent = Object._jds_wrapWithProxy(new ParentObject(10));
 console.log("Before Save:", parent);
 
 parent._pds_save("parent_1");
